@@ -1,124 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NEON COAST COVER LAB</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon Coast Cover Lab — GTA-style cover maker</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">NEON COAST <b>COVER LAB</b></div>
-    <p class="tag">8 layouts &middot; 8 grades &middot; runs fully offline</p>
-  </header>
-
-  <div class="workbench">
-    <aside class="panel" aria-label="cover controls">
-      <section class="group">
-        <h2>Photos — yours, never uploaded</h2>
-        <label class="upload" for="upload">+ Upload your photos</label>
-        <input type="file" id="upload" accept="image/*" multiple hidden />
-        <div class="chips" id="photochips"></div>
-      </section>
-
-      <section class="group">
-        <h2>One-click mood</h2>
-        <div class="chips">
-          <button type="button" data-preset="neon-night">Neon Night</button>
-          <button type="button" data-preset="retro-sunset">Retro Sunset</button>
-          <button type="button" data-preset="gritty-noir">Gritty Noir</button>
-          <button type="button" data-preset="palm-gold">Palm Gold</button>
-        </div>
-      </section>
-
-      <section class="group">
-        <h2>Layout</h2>
-        <div class="chips">
-          <button type="button" data-layout="hero">Hero</button>
-          <button type="button" data-layout="duo">Duo</button>
-          <button type="button" data-layout="triptych">Triptych</button>
-          <button type="button" data-layout="grid">Grid 4</button>
-          <button type="button" data-layout="mosaic">Mosaic 9</button>
-          <button type="button" data-layout="tilted">Tilted Stack</button>
-          <button type="button" data-layout="strip">Hero + Strip</button>
-          <button type="button" data-layout="comic">Comic 3</button>
-        </div>
-      </section>
-
-      <section class="group">
-        <h2>Grade</h2>
-        <div class="chips">
-          <button type="button" data-grade="sunset">Sunset</button>
-          <button type="button" data-grade="neon">Neon</button>
-          <button type="button" data-grade="noir">Noir</button>
-          <button type="button" data-grade="vice">Vice</button>
-          <button type="button" data-grade="gold">Gold</button>
-          <button type="button" data-grade="miami">Miami</button>
-          <button type="button" data-grade="dusk">Dusk</button>
-          <button type="button" data-grade="palm">Palm</button>
-        </div>
-      </section>
-
-      <section class="group">
-        <h2>Export size</h2>
-        <select id="size">
-          <option value="square">Square &middot; 1080 &times; 1080</option>
-          <option value="portrait">Portrait &middot; 1080 &times; 1350</option>
-          <option value="wide">Wide &middot; 1920 &times; 1080</option>
-        </select>
-      </section>
-
-      <section class="group">
-        <h2>Panel <span id="panelcount" class="count"></span></h2>
-        <select id="panel"></select>
-        <p class="hint">Click a panel in the preview to select it. Drag it to pan, scroll to zoom.</p>
-      </section>
-
-      <section class="group sliders">
-        <label>Zoom <output id="zoom-out">1.00</output></label>
-        <input type="range" id="zoom" min="1" max="2.5" step="0.01" value="1" />
-        <label>Crop X <output id="dx-out">0.00</output></label>
-        <input type="range" id="dx" min="-0.5" max="0.5" step="0.01" value="0" />
-        <label>Crop Y <output id="dy-out">0.00</output></label>
-        <input type="range" id="dy" min="-0.5" max="0.5" step="0.01" value="0" />
-        <label>Heat <output id="heat-out">5 / 5</output></label>
-        <input type="range" id="heat" min="0" max="5" step="1" value="5" />
-        <label>Grain <output id="grain-out">50%</output></label>
-        <input type="range" id="grain" min="0" max="1" step="0.05" value="0.5" />
-      </section>
-
-      <section class="group">
-        <h2>Words</h2>
-        <input type="text" id="caption" value="NEON HEAT" placeholder="CAPTION" />
-        <input type="text" id="tagline" value="VICE CITY AFTER DARK" placeholder="TAGLINE" />
-        <input type="text" id="subtitle" value="midnight run" placeholder="script subtitle" />
-        <select id="titlestyle">
-          <option value="gradient">Title: gradient</option>
-          <option value="solid">Title: solid</option>
-          <option value="outline">Title: outline</option>
-        </select>
-      </section>
-
-      <section class="group actions">
-        <button type="button" id="export" class="primary">Export PNG</button>
-        <button type="button" id="exportall">Export all 3</button>
-      </section>
-      <section class="group actions">
-        <button type="button" id="undo">Undo</button>
-        <button type="button" id="redo">Redo</button>
-        <button type="button" id="shuffle">Shuffle</button>
-        <button type="button" id="reset">Reset</button>
-      </section>
-    </aside>
-
-    <main class="stage">
-      <div class="frame">
-        <canvas id="cover"></canvas>
+<header class="topbar">
+  <div class="brand"><span class="brand-star">★</span> NEON COAST <span class="brand-sub">COVER LAB</span></div>
+  <p class="tagline">Your photo. Your caption. A Vice City neon cover in one minute — offline, nothing uploaded.</p>
+</header>
+<main class="app">
+  <section class="stage">
+    <canvas id="cover" width="880" height="495" aria-label="The cover"></canvas>
+    <p id="panelLabel" class="hint" role="status">Panel 1 of 2 — drag the cover to move it, scroll to zoom</p>
+  </section>
+  <aside class="controls">
+    <h1>Make your cover</h1>
+    <div class="group">
+      <span class="label">1 · Layout</span>
+      <div class="row">
+        <button type="button" data-layout="slash" class="active">Neon Slash</button>
+        <button type="button" data-layout="triptych">Triptych</button>
+        <button type="button" data-layout="hero">Hero Frame</button>
       </div>
-      <p id="status" class="status">Loading&hellip;</p>
-    </main>
-  </div>
-
-  <script type="module" src="./src/main.js"></script>
+    </div>
+    <div class="group">
+      <span class="label">2 · Grade</span>
+      <div class="row swatches">
+        <button type="button" data-grade="vice" class="active" style="--sw1:#ff5e8a;--sw2:#2b1055">Vice Sunset</button>
+        <button type="button" data-grade="neon" style="--sw1:#7b2fff;--sw2:#0b1035">Neon Night</button>
+        <button type="button" data-grade="dusk" style="--sw1:#ff8a3d;--sw2:#3d0b3d">Palm Dusk</button>
+        <button type="button" data-grade="gold" style="--sw1:#ffd76a;--sw2:#7a2d12">Gold Hour</button>
+        <button type="button" data-grade="noir" style="--sw1:#ff4d6d;--sw2:#101014">Noir Pink</button>
+        <button type="button" data-grade="mint" style="--sw1:#39ffb0;--sw2:#0b2b3d">Mint Vice</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="label">3 · Photos — one per panel</span>
+      <label class="file">Panel 1 <input data-photo="0" type="file" accept="image/*"></label>
+      <label class="file">Panel 2 <input data-photo="1" type="file" accept="image/*"></label>
+      <label class="file">Panel 3 <input data-photo="2" type="file" accept="image/*"></label>
+      <button id="fillAll" type="button" class="ghost">Fill every panel with the first photo</button>
+    </div>
+    <div class="group">
+      <span class="label">4 · Words</span>
+      <label class="field">Title <input id="title" type="text" maxlength="24" value="NEON COAST"></label>
+      <label class="field">Subtitle <input id="subtitle" type="text" maxlength="40" value="SUNSET HEIST ON THE COAST"></label>
+      <label class="field">Zoom panel <input id="zoom" type="range" min="0" max="150" value="0"></label>
+    </div>
+    <div class="group">
+      <span class="label">5 · Size &amp; export</span>
+      <div class="row">
+        <button type="button" data-size="1920x1080" class="active">1920 × 1080</button>
+        <button type="button" data-size="1080x1080">1080 × 1080</button>
+        <button type="button" data-size="1080x1350">1080 × 1350</button>
+      </div>
+      <div class="row">
+        <button type="button" data-export="1920x1080" class="export">Export landscape</button>
+        <button type="button" data-export="1080x1080" class="export">Export square</button>
+        <button type="button" data-export="1080x1350" class="export">Export portrait</button>
+      </div>
+    </div>
+    <p id="status" role="status"></p>
+  </aside>
+</main>
+<script type="module" src="./src/main.js"></script>
 </body>
 </html>
