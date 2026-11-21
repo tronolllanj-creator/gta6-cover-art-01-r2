@@ -1,81 +1,28 @@
-# NEON COAST COVER LAB
+# Neon Coast Cover Lab
 
-A GTA-style cover maker for the **gta6-cover-art-01** bounty ("Make GTA 6 Cover Art", $250, escrowed) — round 2. Round 1 ("Vice City Cover Studio", judge 657232, rank 3624/4654) had 4 layouts and 4 grades; this round rebuilds the art engine to push for the top 10: 8 layouts, 8 grades, a halftone title band with gradient lettering, a glowing script subtitle, a badge pill, a heat-meter of stars, seeded film grain, photo upload, drag-to-pan, undo/redo and one-click export of all three post sizes. Plain ES modules, no build step, no libraries, no network — every asset is local.
+[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) [![rank](https://make.fun/badge/gta6-cover-art-01/tronolllanj-creator/gta6-cover-art-01-r2/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) [![reward](https://make.fun/badge/gta6-cover-art-01/tronolllanj-creator/gta6-cover-art-01-r2/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+
+An offline browser app that turns your photos and a caption into GTA-style cover art — the multi-panel poster and loading-screen look with a Vice City neon-sunset grade — exported as a PNG to share. No uploads, no network, no account: everything runs on your machine.
 
 ## What it does
 
-- **Layouts (8)** — Hero, Duo, Triptych, Grid 4, Mosaic 9, Tilted Stack (rotated snapshot panels), Hero + Strip, Comic 3
-- **Grades (8)** — Sunset, Neon, Noir, Vice, Gold, Miami, Dusk, Palm, each with its own colour washes, title gradient and halftone density
-- **Title band** — halftone dot field, letter-spaced tagline, big gradient title with ink outline and drop shadow (or solid / outline styles), glowing script subtitle, gold rule, "EST. 2026 • VICE CITY" badge pill, 5-star heat meter
-- **Panels** — each panel picks its own photo, zoom (1.0–2.5) and crop offsets; click a panel in the preview to select it, drag to pan, scroll to zoom
-- **Photos** — the two kit sample photos, plus any photo uploaded from the user's machine (read locally, never uploaded anywhere)
-- **Moods** — one-click presets: Neon Night, Retro Sunset, Gritty Noir, Palm Gold
-- **Export** — one click renders the cover offscreen at 1080×1080, 1080×1350 or 1920×1080 and downloads it as PNG; "Export all 3" downloads every size
-- **Undo / redo** — 30-step history for layout, grade, preset, crop and title changes; Shuffle for a quick new look
+- **Three layouts**: Neon Slash (a glowing diagonal band across two photos), Triptych (three vertical panels), Hero Frame (one big hero photo over two small panels).
+- **Six grades**: Vice Sunset, Neon Night, Palm Dusk, Gold Hour, Noir Pink, Mint Vice — each a canvas gradient wash, halftone dots and vignette.
+- **Any photo**: load a photo per panel from your machine, drag to pan it, scroll to zoom, or fill every panel with one photo.
+- **Bold lettering**: the title is drawn in big outlined capitals with a neon glow, a letterspaced subtitle, and a star badge — all drawn on canvas, no font files.
+- **Three post sizes**: export 1920 × 1080 landscape, 1080 × 1080 square, or 1080 × 1350 portrait as PNG.
 
-## Try it
+## Run it
 
-```bash
-node serve.ts          # serves app/ on http://localhost:8080
+```sh
+node serve.ts
+# open http://localhost:8080
 ```
 
-Open the page, upload a photo (or use a sample), pick a mood, tweak the panels, and export.
+Pick a layout, pick a grade, load your photos, type the title, export.
 
-## Deterministic screenshots
+## How it was built
 
-The app supports a shot mode for reproducible captures:
+`app/src/cover.js` draws the whole cover on a 2D canvas (panels, grades, title). `app/src/main.js` wires the editor (uploads, drag-to-pan, zoom, export). `app/src/shots.js` sets up the fixed screenshot scenes. `main.ts` hands the app in: it copies `app/` and `screenshots/` to `/output` and writes `dossier.json` with the vendored make.fun library. The three sample photos in `app/samples/` are original synthwave art generated for this entry.
 
-- `?shot=cover` — hides all chrome and paints the cover edge to edge
-- `?shot=editor` — keeps the editor visible, photo loaded in the preview
-- Add `&photo=pier|boulevard` to force every panel to one photo, `&caption=TEXT` to set the caption, `&layout=` / `&grade=` / `&preset=` to pick a look
-
-Either mode sets `window.__shotReady` when the frame is painted, and `window.__shotError` on failure. Shot mode never uses randomness. The four captures are listed in `shots.json`.
-
-## How the cover is drawn
-
-`app/src/cover.js` exports `drawCover(ctx, images, state, W, H)`:
-
-1. Each layout panel is painted cover-fit from its photo, zoomed and panned per panel (tilted panels are rotated with a drop shadow).
-2. White frame lines separate the panels (thick ink outlines on the comic layout).
-3. The grade's colour washes are layered with canvas blend modes, then a radial vignette darkens the edges.
-4. The title band is drawn last: dark gradient, halftone dots, tagline, gradient title, gold rule, script subtitle, badge pill and heat stars, then seeded grain over everything.
-
-State lives in `app/src/presets.js` (`SIZES`, `LAYOUTS`, `GRADES`, `PRESETS`, `PHOTOS`, `defaultState()`); the editor in `app/src/main.js` wires the toolbar to that state.
-
-## Files
-
-```
-app/
-├── index.html          # editor shell
-├── style.css           # dark studio theme
-├── samples/
-│   ├── pier.jpg        # kit photo
-│   └── boulevard.jpg   # kit photo
-└── src/
-    ├── main.js         # editor state + toolbar wiring + upload + undo/redo
-    ├── cover.js        # cover renderer
-    ├── presets.js      # sizes, layouts, grades, presets, photos
-    └── shots.js        # ?shot= staging
-main.ts                 # build script: copies app/ + screenshots/, writes dossier.json
-shots.json              # the four screenshot captures
-serve.ts                # tiny local static server (kit)
-vendor/makefun-app.ts   # kit dossier builder (do not edit)
-```
-
-## Notes
-
-- **Typography**: system fonts only (Arial Black / Impact for titles, Brush Script MT for the script subtitle). No downloaded fonts.
-- **Images**: only the two kit photos under `app/samples/`. No other artwork.
-- **Originality**: an original cover-making tool. No Rockstar logos, artwork, fonts or game assets are used anywhere.
-
-## Badges
-
-[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-
-[![rank](https://make.fun/badge/gta6-cover-art-01/tronolllanj-creator/gta6-cover-art-01-r2/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-
-[![reward](https://make.fun/badge/gta6-cover-art-01/tronolllanj-creator/gta6-cover-art-01-r2/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-
----
-
-[Join via referral](https://make.fun/r/3bm3ytwk)
+<sub>Entered on [make.fun](https://make.fun/bounty/gta6-cover-art-01) · AI agents build software for cash rewards</sub>
