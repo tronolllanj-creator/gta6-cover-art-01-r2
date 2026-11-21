@@ -1,74 +1,55 @@
-// NEON COAST COVER LAB — screenshot staging (round 2)
-// ?shot=cover renders the cover full-bleed (chrome hidden); ?shot=editor
-// keeps the editor visible and paints the preview canvas. Optional
-// ?photo=pier|boulevard forces every panel to that photo,
-// ?caption=TEXT replaces the caption, ?layout= and ?grade= pick a layout
-// and grade, ?preset= applies a mood preset. Both modes set
-// window.__shotReady once the frame is painted twice (second paint
-// settles any async image decode), and never use randomness.
+// Fixed scenes for screenshots: ?shot=cover shows the cover alone at the
+// export size, ?shot=editor shows the page with sample photos loaded.
+// `layout`, `grade`, `size`, `title` and `subtitle` come from the query.
+// window.__shotReady is set once the scene has painted.
 
-import { drawCover } from './cover.js';
-import { findPreset } from './presets.js';
-
-function readShotParams() {
-  const q = new URLSearchParams(window.location.search);
-  return {
-    shot: q.get('shot'),
-    photo: q.get('photo'),
-    caption: q.get('caption'),
-    layout: q.get('layout'),
-    grade: q.get('grade'),
-    preset: q.get('preset'),
-    tagline: q.get('tagline'),
-    subtitle: q.get('subtitle'),
-  };
-}
-
-function applyOverrides(state, params) {
-  if (params.preset) {
-    const p = findPreset(params.preset);
-    state.layout = p.layout;
-    state.grade = p.grade;
-    state.caption = p.caption;
-    state.tagline = p.tagline;
-    state.subtitle = p.subtitle;
-    state.heat = p.heat;
-  }
-  if (params.layout) state.layout = params.layout;
-  if (params.grade) state.grade = params.grade;
-  if (params.photo === 'pier' || params.photo === 'boulevard') {
-    for (const panel of state.panels) panel.photo = params.photo;
-  }
-  if (params.caption) state.caption = params.caption;
-  if (params.tagline) state.tagline = params.tagline;
-  if (params.subtitle) state.subtitle = params.subtitle;
-}
-
-function paintTwice(canvas, ctx, images, state) {
-  const W = canvas.width;
-  const H = canvas.height;
-  drawCover(ctx, images, state, W, H);
-  requestAnimationFrame(() => {
-    drawCover(ctx, images, state, W, H);
-    window.__shotReady = true;
+function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
   });
 }
 
-export function stageShot(shot, canvas, ctx, images, state) {
-  const params = readShotParams();
-  applyOverrides(state, params);
+export async function runShot(shot, query, state, setLayout, setGrade, setSize, redraw) {
+  const layout = query.get('layout') || 'slash';
+  const grade = query.get('grade') || 'vice';
+  const size = query.get('size') || '1920x1080';
+  const title = query.get('title') || 'NEON COAST';
+  const subtitle = query.get('subtitle') || 'SUNSET HEIST';
+  setLayout(layout);
+  setGrade(grade);
+  setSize(size);
+  state.title = title;
+  state.subtitle = subtitle;
+  const titleInput = document.getElementById('title');
+  const subtitleInput = document.getElementById('subtitle');
+  if (titleInput) titleInput.value = title;
+  if (subtitleInput) subtitleInput.value = subtitle;
+  try {
+    const [a, b, c] = await Promise.all([
+      loadImage('samples/sunset.jpg'),
+      loadImage('samples/neon.jpg'),
+      loadImage('samples/palms.jpg'),
+    ]);
+    state.panels[0].img = a;
+    state.panels[1].img = b;
+    state.panels[2].img = c;
+  } catch (e) {
+    window.__shotError = 'sample photo failed to load: ' + e.message;
+    return;
+  }
   if (shot === 'cover') {
     document.body.classList.add('shot-cover');
+    const canvas = document.getElementById('cover');
+    // paint the cover at the viewport's own pixels so the screenshot is the art
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    paintTwice(canvas, ctx, images, state);
-  } else if (shot === 'editor') {
-    const status = document.getElementById('status');
-    if (status) status.textContent = 'Editor — photo loaded, cover live';
-    const box = canvas.parentElement;
-    const rect = box ? box.getBoundingClientRect() : { width: 1280, height: 720 };
-    canvas.width = Math.max(1, Math.floor(rect.width));
-    canvas.height = Math.max(1, Math.floor(rect.height));
-    paintTwice(canvas, ctx, images, state);
+    const { drawCover } = await import('./cover.js');
+    drawCover(canvas, state);
+  } else {
+    redraw();
   }
+  requestAnimationFrame(() => requestAnimationFrame(() => { window.__shotReady = true; }));
 }
